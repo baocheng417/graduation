@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import graph.DealFile;
 import graph.DealGraph;
 import graph.ReadData;
 import graph.ReadGraph;
@@ -22,15 +23,15 @@ public class CenterPoint
 	static int pointNum = 0;
 	/**
 	 * 
-	 * @param threshold 设置选取中心节点的阈值
 	 * @param filePath 文件所在路径
 	 * @param dg 读取文件中的图信息
 	 * @return 中心节点集合
 	 * @throws Exception 抛出读文件异常
 	 */
-	public List<Integer> getCenterPoint(float threshold, String filePath, DealGraph dg) throws Exception
+	public List<Integer> getCenterPoint(String filePath, DealGraph dg) throws Exception
 	{
 		dg.readFile(filePath);
+		float threshold = dg.getThreshold(); //获取中心节点的阈值
 		
 		Map<Integer,String> idToString = DealGraph.idToString;//获取文件中的节点
 		edge = DealGraph.edge;//获取文件中的边
@@ -46,8 +47,9 @@ public class CenterPoint
 		
 		for (int i = 0; i < degree.length; i++)
 		{
-			if(degree[i] >= 2*threshold)
+			if(degree[i] > 2*threshold)
 			{
+				System.out.print(i+"="+degree[i]+" ");
 				centerPointList.add(i);
 				centerPointMap.put(i, idToString.get(i)+" "+degree[i]);
 			}
@@ -55,10 +57,10 @@ public class CenterPoint
 		return centerPointList;
 	}
 	
-	public List<CenterSimilarity> calculateSimilarity(List<Integer> centerPointMaList)
+	public List<CenterDifferent> calculateDifferent(List<Integer> centerPointMaList)
 	{
 		int[][] A = DealGraph.A;
-		List<CenterSimilarity> similarityList = new ArrayList<CenterSimilarity>();
+		List<CenterDifferent> differentList = new ArrayList<CenterDifferent>();
 		
 		for(int i = 0; i < centerPointMaList.size(); i++)
 		{ 
@@ -71,40 +73,55 @@ public class CenterPoint
 						continue;
 					num += Math.pow(A[centerPointMaList.get(i)][k]-A[centerPointMaList.get(j)][k], 2);
 				}
-				similarityList.add(new CenterSimilarity(centerPointMaList.get(i), centerPointMaList.get(j), (float)Math.round(Math.sqrt(num)*1000)/1000));
+				differentList.add(new CenterDifferent(centerPointMaList.get(i), centerPointMaList.get(j), (float)Math.round(Math.sqrt(num)*1000)/1000));
 			}
 		}
-		return similarityList;
+		return differentList;
 	}  
 	
-	public void print(List<CenterSimilarity> centerSimilarity, double similarConstant)
+	public void print(List<CenterDifferent> centerDifferent, double similarConstant)
 	{
-		for (int i = 0; i < centerSimilarity.size(); i++)
-		{
-			if(i % 20 == 0)
+		for (int i = 0; i < centerDifferent.size(); i++)
+		{			
+			if(centerDifferent.get(i).getValue() < similarConstant)
 			{
-				System.out.println();
-			}
-			
-			if(centerSimilarity.get(i).getValue() < similarConstant)
-			{
-				System.out.print(centerSimilarity.get(i).getValue()+"-"+centerSimilarity.get(i).getPre()+
-						"-"+centerSimilarity.get(i).getNext()+" ");
+				System.out.print(centerDifferent.get(i).getValue()+"-"+centerDifferent.get(i).getPre()+
+						"-"+centerDifferent.get(i).getNext()+" ");
 			}
 		}
 	}
 	
-	public List<CenterSimilarity> sortOfCenter(List<CenterSimilarity> centerSimilarity)
+	public List<CenterDifferent> sortOfCenter(List<CenterDifferent> centerDifferent)
 	{
-		Collections.sort(centerSimilarity, new Comparator<CenterSimilarity>()
+		Collections.sort(centerDifferent, new Comparator<CenterDifferent>()
 		{
 			@Override
-			public int compare(CenterSimilarity o1, CenterSimilarity o2)
+			public int compare(CenterDifferent o1, CenterDifferent o2)
 			{
-				return o1.getValue()-o2.getValue()>0 ? 1 : (o1.getValue() == o2.getValue() ? 0 : -1);
+				return o1.getValue()-o2.getValue()>0 ? -1 : (o1.getValue() == o2.getValue() ? 0 : 1);
 			}
 		});
-		return centerSimilarity;
+		return centerDifferent;
+	}
+	
+	public List<Integer> centerNode(List<CenterDifferent> centerDifferent, List<Integer> centerPoint)
+	{
+		List<Integer> centerNodes = new ArrayList<Integer>();
+		List<CenterNode> node = new ArrayList<CenterNode>();
+		
+		float[] varieties = new float[centerDifferent.size()-1];
+		
+		for(int i = 1; i < centerDifferent.size(); i++)
+		{
+			float variety = centerDifferent.get(i).getValue() - centerDifferent.get(i-1).getValue();
+			varieties[i-1] = variety;
+			System.out.print(variety+" ");
+		}
+		
+		
+		
+		
+		return centerNodes; 
 	}
 	
 	
@@ -113,9 +130,12 @@ public class CenterPoint
 		String filePath = "d:\\karate.gml";
 		CenterPoint cp = new CenterPoint();
 		DealGraph rg  = new ReadGraph();
-		List<Integer> list = cp.getCenterPoint(DealGraph.threshold, filePath,rg);
-		List<CenterSimilarity> cs = cp.calculateSimilarity(list);
+		List<Integer> list = cp.getCenterPoint(filePath,rg);
+		List<CenterDifferent> cs = cp.calculateDifferent(list);
 		cs = cp.sortOfCenter(cs);
+		System.out.println();
+		cp.centerNode(cs, list);
+		System.out.println();
 		System.out.println(cs.size());
 		cp.print(cs, 100);
 	}

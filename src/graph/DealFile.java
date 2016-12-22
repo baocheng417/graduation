@@ -87,8 +87,8 @@ public class DealFile extends DealGraph
 	}
 
 	@Override
-	public void getThreshold()
+	public float getThreshold()
 	{
-		threshold = (float)(num * 2)/idToString.size();	
+		return (float)(num * 2)/idToString.size();	
 	}
 }

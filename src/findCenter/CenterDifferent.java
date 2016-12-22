@@ -1,6 +1,6 @@
 package findCenter;
 
-public class CenterSimilarity
+public class CenterDifferent
 {
 	private int pre;
 	private int next;
@@ -29,7 +29,7 @@ public class CenterSimilarity
 	{
 		this.value = value;
 	}
-	public CenterSimilarity(int pre, int next, float value)
+	public CenterDifferent(int pre, int next, float value)
 	{
 		super();
 		this.pre = pre;

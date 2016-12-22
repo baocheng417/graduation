@@ -9,7 +9,6 @@ public abstract class DealGraph
 	public static int[][] A; //图中的邻接矩阵
  	public static Map<Integer,String> idToString = new HashMap<Integer,String>();  //存储图中的节点
  	public static int num = 0;  //边的数量
- 	public static float threshold = 0l; //度数阈值
 	
 	/**
 	 * 读取文件中的图
@@ -26,6 +25,6 @@ public abstract class DealGraph
 	/**
 	 * 获得图中度数阈值
 	 */
-	public abstract void getThreshold();
+	public abstract float getThreshold();
 	
 }
